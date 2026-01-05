@@ -24,6 +24,6 @@ $stmt = $pdo->prepare($sql);
 
 $stmt->execute([":name" => $name, ":email" => $email, ":phone_number" => $phone_number]);
 
-header("Location: /");
+header("Location: /php-crud-test");
 
 exit;

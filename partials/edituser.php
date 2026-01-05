@@ -14,7 +14,7 @@ $successMessage = "";
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
     if (empty($_GET['id'])) {
-        header("Location: /");
+        header("Location: /php-crud-test");
         exit;
     }
 
@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$user) {
-        header("Location: /");
+        header("Location: /php-crud-test");
         exit;
     }
 
@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
 
         $successMessage = "User updated successfully";
-        header("Location: /");
+        header("Location: /php-crud-test");
         exit;
     }
 }

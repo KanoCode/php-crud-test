@@ -42,7 +42,7 @@
 // }
 
 
-$host = "127.0.0.1";
+$host = "localhost";
 $dbname = "userdata";
 $dbuser = "phpuser";
 $dbpassword = "php_password";

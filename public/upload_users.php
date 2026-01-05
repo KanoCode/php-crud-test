@@ -70,5 +70,5 @@ while (($row = fgetcsv($handle, 0, ',', '"', '\\')) !== false) {
 fclose($handle);
 
 // success
-header('Location: /?upload=success');
+header('Location: /php-crud-test?upload=success');
 exit;

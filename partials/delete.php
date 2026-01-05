@@ -2,7 +2,7 @@
 require_once 'connect.php';
 
 if (!isset($_GET['id'])) {
-    header("Location: /");
+    header("Location: /php-crud-test");
     exit;
 }
 
@@ -14,5 +14,5 @@ $stmt->execute([
     ':id' => $id
 ]);
 
-header("Location: /");
+header("Location: /php-crud-test");
 exit;

@@ -34,9 +34,9 @@ $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <td><?= htmlspecialchars($row['email']) ?></td>
                     <td><?= htmlspecialchars($row['phone_number'] ?? '') ?></td>
                     <td>
-                        <a href='/partials/edituser.php?id=<?= $row['id'] ?>' class="text-success mr-3"><i class="fa-solid fa-pencil"></i></a>
+                        <a href='/php-crud-test/partials/edituser.php?id=<?= $row['id'] ?>' class="text-success mr-3"><i class="fa-solid fa-pencil"></i></a>
                         <!-- <a href='#' data-bs-target='#viewusermodal' data-bs-toggle='modal' data-target='#viewusermodal' class="text-danger"><i class="fa-solid fa-trash"></i></a> -->
-                        <a href="/partials/delete.php?id=<?= $row['id'] ?>" class="text-danger "><i class="fa-solid fa-trash"></i></a>
+                        <a href="/php-crud-test/partials/delete.php?id=<?= $row['id'] ?>" class="text-danger "><i class="fa-solid fa-trash"></i></a>
                     </td>
                 </tr>
             <?php endforeach; ?>
