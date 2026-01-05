@@ -180,7 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <button type="submit" class="btn btn-dark">Edit</button>
                 </div>
                 <div class="col-sm-3 d-grid">
-                    <a href="/" class="btn btn-outline-dark">Back</a>
+                    <a href="/php-crud-test" class="btn btn-outline-dark">Back</a>
                 </div>
             </div>
         </form>
