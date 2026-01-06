@@ -1,29 +1,43 @@
 <?php
-
-
 declare(strict_types=1);
 
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
+require_once __DIR__ . '/../partials/connect.php';
+
+/**
+ * Redirect helper
+ */
+function redirect(string $status): void {
+    header("Location: /php-crud-test?upload={$status}");
+    exit;
+}
+
+/**
+ * 1. Validate upload
+ */
 if (!isset($_FILES['csv_file'])) {
-    die('No file uploaded');
+    redirect('failed');
 }
 
 $file = $_FILES['csv_file'];
 
-// validate upload
 if ($file['error'] !== UPLOAD_ERR_OK) {
-    die('Upload failed');
+    redirect('failed');
 }
 
-// validate extension
-$ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+/**
+ * 2. Validate extension
+ */
+$ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
 if ($ext !== 'csv') {
-    die('Only CSV files allowed');
+    redirect('failed');
 }
 
-// save location
+/**
+ * 3. Save file (always)
+ */
 $uploadDir = __DIR__ . '/../storage/uploads';
 if (!is_dir($uploadDir)) {
     mkdir($uploadDir, 0777, true);
@@ -32,78 +46,86 @@ if (!is_dir($uploadDir)) {
 $filename = 'users_' . date('Y-m-d_H-i-s') . '.csv';
 $destination = $uploadDir . '/' . $filename;
 
-// move file
 if (!move_uploaded_file($file['tmp_name'], $destination)) {
-    die('Failed to save file');
+    redirect('failed');
 }
 
-
-
-require_once __DIR__ . '/../partials/connect.php';
-
+/**
+ * 4. Open CSV
+ */
 $handle = fopen($destination, 'r');
+if (!$handle) {
+    redirect('saved_not_imported');
+}
 
-// skip header
-fgetcsv($handle, 0, ',', '"', '\\');
+/**
+ * 5. Read header
+ */
+$header = fgetcsv($handle);
+if (!$header || count($header) < 4) {
+    fclose($handle);
+    redirect('saved_not_imported');
+}
 
+/**
+ * 6. Prepare statement
+ */
 $stmt = $pdo->prepare(
     "INSERT INTO users (name, email, phone_number)
-     VALUES (:name, :email, :phone)
+     VALUES (:name, :email, :phone_number)
      ON DUPLICATE KEY UPDATE
         name = VALUES(name),
         phone_number = VALUES(phone_number)"
 );
 
+$imported = 0;
+$skipped  = 0;
 
-while (($row = fgetcsv($handle, 0, ',', '"', '\\')) !== false) {
+/**
+ * 7. Process rows safely
+ */
+while (($row = fgetcsv($handle)) !== false) {
 
+    // Must have required columns
     if (count($row) < 4) {
+        $skipped++;
         continue;
     }
 
-    $name  = trim($row[1]);
-    $email = trim($row[2]);
-    $phone = trim($row[3]);
+    $name  = trim($row[1] ?? '');
+    $email = trim($row[2] ?? '');
+    $phone = trim($row[3] ?? '');
 
+    // Basic validation
     if ($name === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $skipped++;
         continue;
     }
 
-    // normalize phone
-    $phone = preg_replace('/\D/', '', $phone);
-
-    if (strlen($phone) > 15) {
-        continue;
-    }
+    // Prevent "Data too long" errors
+    $phone = substr($phone, 0, 20);
 
     try {
         $stmt->execute([
             ':name'  => $name,
             ':email' => $email,
-            ':phone' => $phone,
+            ':phone_number' => $phone,
         ]);
+        $imported++;
     } catch (PDOException $e) {
-        // skip bad rows silently
+        // Ignore bad rows, continue processing
+        $skipped++;
         continue;
     }
 }
 
-
-// while (($row = fgetcsv($handle, 0, ',', '"', '\\')) !== false) {
-
-//     if (count($row) < 4) {
-//         continue;
-//     }
-
-//     $stmt->execute([
-//         ':name'  => trim($row[1]),
-//         ':email' => trim($row[2]),
-//         ':phone' => trim($row[3]),
-//     ]);
-// }
-
 fclose($handle);
 
-// success
-header('Location: /php-crud-test?upload=success');
-exit;
+/**
+ * 8. Redirect result
+ */
+if ($imported > 0) {
+    redirect('success');
+}
+
+redirect('saved_not_imported');
