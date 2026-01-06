@@ -54,18 +54,53 @@ $stmt = $pdo->prepare(
         phone_number = VALUES(phone_number)"
 );
 
+
 while (($row = fgetcsv($handle, 0, ',', '"', '\\')) !== false) {
 
     if (count($row) < 4) {
         continue;
     }
 
-    $stmt->execute([
-        ':name'  => trim($row[1]),
-        ':email' => trim($row[2]),
-        ':phone' => trim($row[3]),
-    ]);
+    $name  = trim($row[1]);
+    $email = trim($row[2]);
+    $phone = trim($row[3]);
+
+    if ($name === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        continue;
+    }
+
+    // normalize phone
+    $phone = preg_replace('/\D/', '', $phone);
+
+    if (strlen($phone) > 15) {
+        continue;
+    }
+
+    try {
+        $stmt->execute([
+            ':name'  => $name,
+            ':email' => $email,
+            ':phone' => $phone,
+        ]);
+    } catch (PDOException $e) {
+        // skip bad rows silently
+        continue;
+    }
 }
+
+
+// while (($row = fgetcsv($handle, 0, ',', '"', '\\')) !== false) {
+
+//     if (count($row) < 4) {
+//         continue;
+//     }
+
+//     $stmt->execute([
+//         ':name'  => trim($row[1]),
+//         ':email' => trim($row[2]),
+//         ':phone' => trim($row[3]),
+//     ]);
+// }
 
 fclose($handle);
 
